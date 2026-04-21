@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="slides-format" content="viewport">
+<title>Julia's Backyard Concept – Austin Native, Hosting Forward</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+@theme {
+  --color-bg:#f5f0e8;
+  --color-bg-deep:#e8e0d2;
+  --color-surface:#fffbf5;
+  --color-text:#261c16;
+  --color-text-secondary:#51453d;
+  --color-text-muted:#827269;
+  --color-accent-1:#8d6a43;
+  --color-accent-2:#b98653;
+  --color-accent-3:#7c9365;
+  --color-accent-4:#d3a9a0;
+  --color-glass-bg:rgba(255,255,255,0.86);
+  --color-glass-border:rgba(38,28,20,0.10);
+  --color-vignette:rgba(0,0,0,0.05);
+  --font-display:'Cormorant Garamond',serif;
+  --font-body:'Inter',sans-serif;
+}
+</style>
+<style>
+:root{--color-bg:#f5f0e8;--color-text:#261c16;--font-display:'Cormorant Garamond',serif;--font-body:'Inter',sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:var(--color-bg)}
+body{font-family:var(--font-body);color:var(--color-text);overflow:hidden;min-height:100vh;width:100%}
+.deck{width:100%;min-height:100vh;position:relative}
+.slide{position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 8% 12%, rgba(185,134,83,.08), transparent 26%),radial-gradient(circle at 82% 18%, rgba(124,147,101,.09), transparent 24%),linear-gradient(180deg,#f9f4ec 0%,#f5f0e8 56%,#ece2d6 100%);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.975);transition:opacity .65s ease,transform .65s ease;pointer-events:none;overflow:hidden}
+.slide.active{opacity:1;transform:scale(1);pointer-events:all}
+.slide>.content{position:relative;z-index:2;width:100%;max-width:1120px;padding:clamp(1.1rem,4vw,3rem)}
+.nav-controls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:99;background:rgba(255,250,243,.94);backdrop-filter:blur(12px);border:1px solid rgba(38,28,20,.08);padding:10px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(61,45,29,.08)}
+.nav-btn{width:38px;height:38px;border:none;border-radius:999px;background:#fff;color:#8d6a43;font-size:1.15rem;cursor:pointer}
+.slide-dots{display:flex;gap:8px}.dot{width:10px;height:10px;border-radius:50%;background:rgba(38,28,20,.18);cursor:pointer}.dot.active{background:#8d6a43;transform:scale(1.2)}
+.slide-counter{font-size:.8rem;color:#827269;min-width:42px;text-align:center}.reveal{opacity:0;transform:translateY(18px)}
+.card{background:var(--color-glass-bg);backdrop-filter:blur(10px);border:1px solid var(--color-glass-border);box-shadow:0 18px 40px rgba(61,45,29,.08);border-radius:28px}
+.img-shell{position:relative;height:min(68vh,760px);border-radius:30px;overflow:hidden;border:1px solid rgba(38,28,20,.10);box-shadow:0 22px 50px rgba(61,45,29,.12);background:#d8c9b6}
+.img-shell img{width:100%;height:100%;object-fit:cover;display:block}
+.img-shell::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,251,246,.04),rgba(30,19,10,.05));pointer-events:none}
+.label{display:inline-flex;align-items:center;gap:.45rem;padding:.46rem .8rem;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid rgba(38,28,20,.08);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#8d6a43}
+.overlay{position:absolute;background:rgba(255,250,244,.96);backdrop-filter:blur(6px);border:1px solid rgba(141,106,67,.20);box-shadow:0 10px 26px rgba(61,45,29,.09);border-radius:18px;padding:.56rem .7rem;max-width:220px;font-size:.8rem;line-height:1.25;color:#31251e}
+.overlay strong{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8d6a43;margin-bottom:.12rem}
+.line{position:absolute;height:2px;background:linear-gradient(90deg,#b98653,#8d6a43);box-shadow:0 0 8px rgba(185,134,83,.35)}
+.path{position:absolute;border-radius:999px;background:linear-gradient(180deg, rgba(219,200,171,.62), rgba(182,154,118,.35));border:1px solid rgba(141,106,67,.20);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 8px 22px rgba(61,45,29,.08)}
+.plant{position:absolute;border-radius:26px;background:linear-gradient(180deg, rgba(122,150,102,.40), rgba(98,125,80,.20));border:1px solid rgba(120,140,97,.24)}
+.host{position:absolute;border-radius:30px;background:radial-gradient(circle at 50% 40%, rgba(223,205,183,.92), rgba(171,139,105,.50));border:1px solid rgba(141,106,67,.20);box-shadow:0 12px 28px rgba(61,45,29,.16)}
+.firepit{position:absolute;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 50% 50%, rgba(91,64,39,.68), rgba(58,39,25,.92));border:4px solid rgba(232,220,202,.85);box-shadow:0 0 0 7px rgba(190,160,128,.18),0 10px 24px rgba(61,45,29,.16)}
+.firepit::before{content:'';position:absolute;left:50%;top:50%;width:26px;height:34px;transform:translate(-50%,-56%);background:radial-gradient(circle at 50% 75%, #ffd77a 0 26%, #ff9c52 27% 56%, #e46b2f 57% 100%);clip-path:polygon(50% 0%, 72% 32%, 100% 56%, 76% 100%, 48% 82%, 24% 100%, 0 54%, 30% 30%)}
+.table-set{position:absolute;width:82px;height:82px;border-radius:50%;background:radial-gradient(circle at 45% 45%, rgba(223,206,186,.94), rgba(172,144,111,.65));border:2px solid rgba(141,106,67,.25);box-shadow:0 8px 18px rgba(61,45,29,.10)}
+.table-set::before,.table-set::after{content:'';position:absolute;width:26px;height:26px;border-radius:50%;background:rgba(184,156,122,.55);border:1px solid rgba(141,106,67,.24)}
+.table-set::before{left:-14px;top:28px}.table-set::after{right:-14px;top:28px}
+.lounge{position:absolute;width:118px;height:58px;border-radius:28px;background:linear-gradient(180deg, rgba(202,184,161,.84), rgba(155,128,99,.52));border:1px solid rgba(141,106,67,.22);box-shadow:0 8px 20px rgba(61,45,29,.10)}
+.bench{position:absolute;width:88px;height:24px;border-radius:14px;background:linear-gradient(180deg, rgba(183,154,120,.78), rgba(140,113,80,.62));border:1px solid rgba(141,106,67,.24);box-shadow:0 8px 16px rgba(61,45,29,.10)}
+.legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.legend .chip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.80);border:1px solid rgba(38,28,20,.08);font-size:.92rem;color:#51453d}
+.swatch{width:18px;height:18px;border-radius:999px;border:1px solid rgba(38,28,20,.10)}
+.small{font-size:.95rem;color:#51453d}
+@media(max-width:760px){.overlay{max-width:145px;font-size:.66rem;padding:.42rem .52rem}.img-shell{height:min(60vh,620px)}.legend{grid-template-columns:1fr}.firepit{width:58px;height:58px}.table-set{width:62px;height:62px}.lounge{width:94px;height:46px}.bench{width:70px;height:18px}}
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="slide active" data-slide="1">
+    <div class="content text-center">
+      <div class="card p-8 md:p-12 max-w-4xl mx-auto reveal">
+        <div class="label mx-auto mb-4">Concept overview</div>
+        <h1 class="font-display text-[clamp(2.8rem,8vw,5.4rem)] leading-[.9] mb-4 text-accent-1">Julia's backyard as a magical, usable Austin garden</h1>
+        <p class="text-[clamp(1rem,2vw,1.25rem)] text-text-secondary max-w-3xl mx-auto mb-4">This concept keeps the yard calm and practical: native plants, gravel paths, and two hosting zones anchored in the green space and near the house, while the former parking pad becomes a quiet, flexible utility area.</p>
+        <div class="legend max-w-3xl mx-auto reveal">
+          <div class="chip"><span class="swatch" style="background:#d9c8ac"></span>Decomposed granite &amp; gravel paths</div>
+          <div class="chip"><span class="swatch" style="background:#cab79f"></span>Central &amp; near-house hosting zones</div>
+          <div class="chip"><span class="swatch" style="background:#8aa06e"></span>Austin-native planting bands</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="2">
+    <div class="content">
+      <div class="grid md:grid-cols-[1.02fr_.98fr] gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/pNKt7k8.jpeg" alt="Steps leading toward Julia's house">
+          <div class="path" style="left:8%;bottom:8%;width:52%;height:13%;transform:rotate(-8deg)"></div>
+          <div class="plant" style="left:8%;bottom:24%;width:22%;height:16%;transform:rotate(-8deg)"></div>
+          <div class="plant" style="right:10%;top:18%;width:18%;height:22%;transform:rotate(8deg)"></div>
+          <div class="bench" style="right:16%;bottom:16%;transform:rotate(-8deg)"></div>
+          <div class="overlay" style="left:8%;bottom:10%"><strong>Arrival path</strong>A compact DG or gravel walk makes the steps feel like the intentional entry into the garden.</div>
+          <div class="line" style="left:28%;bottom:22%;width:88px;transform:rotate(-15deg)"></div>
+          <div class="overlay" style="right:7%;bottom:9%"><strong>Small bench</strong>A slim bench near the house creates a simple place to pause, drop bags, or sit with coffee.</div>
+          <div class="line" style="right:26%;bottom:20%;width:92px;transform:rotate(-18deg)"></div>
+        </div>
+        <div class="card p-7 md:p-9 reveal">
+          <div class="label mb-4">Front-of-house experience</div>
+          <h2 class="font-display text-[clamp(2rem,4.3vw,3.4rem)] leading-[.96] mb-4">A soft, clear transition from door to yard</h2>
+          <p class="small mb-4">The entry stays simple on purpose: one path, one bench, and native plants framing the route. It keeps the focus on the house and hints that the space beyond is more than just lawn.</p>
+          <ul class="space-y-3 small">
+            <li class="reveal">Decomposed granite or fine gravel gives grip and works with Austin’s climate.</li>
+            <li class="reveal">Beds with salvia, blackfoot daisy, and red yucca soften the hard edges.</li>
+            <li class="reveal">Lighting can be added discreetly to guide the walk without feeling busy.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="3">
+    <div class="content">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/9GH5dEY.jpeg" alt="Facing east with Julia's house in background">
+          <div class="path" style="left:12%;bottom:18%;width:55%;height:10%;transform:rotate(4deg)"></div>
+          <div class="host" style="left:26%;bottom:24%;width:36%;height:24%;transform:rotate(-2deg)"></div>
+          <div class="table-set" style="left:34%;bottom:26%"></div>
+          <div class="overlay" style="left:10%;bottom:10%"><strong>Central hosting zone</strong>A gravel "island" in the lawn becomes the main fire pit and dining area, surrounded by green.</div>
+          <div class="line" style="left:38%;bottom:27%;width:98px;transform:rotate(-6deg)"></div>
+          <div class="plant" style="right:8%;top:18%;width:22%;height:18%;transform:rotate(6deg)"></div>
+          <div class="overlay" style="right:7%;top:10%"><strong>Native frame</strong>Low, drought-tolerant planting helps hold this outdoor room without enclosing it.</div>
+          <div class="line" style="right:30%;top:22%;width:96px;transform:rotate(12deg)"></div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/EMZqf8m.jpeg" alt="Facing east showing the former dumpster patch">
+          <div class="plant" style="left:8%;bottom:10%;width:38%;height:22%;transform:rotate(-7deg)"></div>
+          <div class="path" style="right:10%;bottom:18%;width:36%;height:10%;transform:rotate(6deg)"></div>
+          <div class="overlay" style="left:8%;bottom:10%"><strong>Planted over old scar</strong>The former dumpster area is converted into a native bed instead of forcing turf to recover.</div>
+          <div class="line" style="left:32%;bottom:21%;width:92px;transform:rotate(-8deg)"></div>
+          <div class="overlay" style="right:8%;top:10%"><strong>Circulation path</strong>A short spur connects this repaired area back into the main hosting zone.</div>
+          <div class="line" style="right:30%;top:22%;width:105px;transform:rotate(16deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="4">
+    <div class="content">
+      <div class="grid md:grid-cols-[.95fr_1.05fr] gap-8 items-center">
+        <div class="card p-7 md:p-9 reveal">
+          <div class="label mb-4">Two hosting anchors</div>
+          <h2 class="font-display text-[clamp(2rem,4.2vw,3.3rem)] mb-4">All of the gathering happens in the green space</h2>
+          <p class="small mb-4">Hosting is intentionally pulled away from the old parking pad. One main gathering node floats in the center of the yard, and a second, more intimate seating nook lives closer to the house.</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="card p-4 reveal"><strong>Central fire + dining</strong><div class="small mt-2">A gravel circle with a compact fire feature and movable chairs, surrounded by lawn and native plantings.</div></div>
+            <div class="card p-4 reveal"><strong>Near-house lounge</strong><div class="small mt-2">A smaller seating group just off the steps for coffee, reading, or one-on-one conversations.</div></div>
+            <div class="card p-4 reveal"><strong>Paths as light structure</strong><div class="small mt-2">DG walks guide movement but keep most of the yard soft and planted.</div></div>
+            <div class="card p-4 reveal"><strong>Pad as support zone</strong><div class="small mt-2">The former parking pad becomes storage and utility, not the main social stage.</div></div>
+          </div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/DMeblUm.jpeg" alt="Facing south east corner of the lot">
+          <div class="host" style="right:16%;top:32%;width:34%;height:26%;transform:rotate(4deg)"></div>
+          <div class="firepit" style="right:26%;top:39%"></div>
+          <div class="lounge" style="right:14%;top:47%;transform:rotate(-6deg)"></div>
+          <div class="lounge" style="right:32%;top:48%;transform:rotate(8deg)"></div>
+          <div class="path" style="left:10%;bottom:20%;width:42%;height:10%;transform:rotate(8deg)"></div>
+          <div class="plant" style="left:8%;bottom:10%;width:32%;height:20%;transform:rotate(-8deg)"></div>
+          <div class="overlay" style="right:8%;top:10%"><strong>Main fire circle</strong>This area reads naturally as the primary night-time gathering spot in the center of the yard.</div>
+          <div class="line" style="right:32%;top:24%;width:104px;transform:rotate(12deg)"></div>
+          <div class="overlay" style="left:8%;bottom:11%"><strong>Plant and path band</strong>Native color and a DG walk frame the circle without enclosing it.</div>
+          <div class="line" style="left:31%;bottom:22%;width:95px;transform:rotate(-18deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="5">
+    <div class="content">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/69SRYdF.jpeg" alt="Southwest corner with double gates and old parking pad">
+          <div class="path" style="left:18%;top:56%;width:44%;height:10%;transform:rotate(4deg)"></div>
+          <div class="plant" style="left:10%;top:66%;width:36%;height:20%;transform:rotate(-8deg)"></div>
+          <div class="bench" style="right:20%;top:60%;transform:rotate(-4deg)"></div>
+          <div class="overlay" style="left:8%;top:12%"><strong>Quiet utility pad</strong>The existing concrete is kept as a practical working surface and storage area, not a primary gathering zone.</div>
+          <div class="line" style="left:32%;top:24%;width:118px;transform:rotate(10deg)"></div>
+          <div class="overlay" style="right:8%;top:50%"><strong>Service seating</strong>A bench or potting station here keeps this corner useful without turning it into "the party spot".</div>
+          <div class="line" style="right:30%;top:58%;width:96px;transform:rotate(4deg)"></div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/YE12tok.jpeg" alt="Similar southwest corner shot">
+          <div class="path" style="left:10%;bottom:16%;width:38%;height:10%;transform:rotate(4deg)"></div>
+          <div class="plant" style="left:8%;bottom:8%;width:30%;height:22%;transform:rotate(-4deg)"></div>
+          <div class="overlay" style="left:8%;bottom:10%"><strong>Support circulation</strong>A simple walk connects the pad to the rest of the garden without drawing attention to it.</div>
+          <div class="line" style="left:31%;bottom:22%;width:110px;transform:rotate(-6deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="6">
+    <div class="content">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/Zi7tLIo.jpeg" alt="Facing west toward neighbor house">
+          <div class="plant" style="left:10%;bottom:12%;width:30%;height:22%;transform:rotate(-4deg)"></div>
+          <div class="bench" style="right:14%;bottom:18%;transform:rotate(-5deg)"></div>
+          <div class="overlay" style="left:8%;bottom:10%"><strong>Neighbor-side planting</strong>Repeating a simple rhythm of native shrubs and perennials gives this edge privacy and calm.</div>
+          <div class="line" style="left:29%;bottom:20%;width:102px;transform:rotate(-12deg)"></div>
+          <div class="overlay" style="right:7%;bottom:10%"><strong>Secondary sit spot</strong>A small bench here offers a quiet place to look back across the yard.</div>
+          <div class="line" style="right:28%;bottom:20%;width:90px;transform:rotate(-12deg)"></div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/oOtHcCe.jpeg" alt="Another facing west shot across the yard">
+          <div class="path" style="left:16%;top:60%;width:50%;height:9%;transform:rotate(6deg)"></div>
+          <div class="host" style="right:10%;top:40%;width:26%;height:22%;transform:rotate(-4deg)"></div>
+          <div class="table-set" style="right:16%;top:46%"></div>
+          <div class="overlay" style="left:8%;top:10%"><strong>Gentle loop</strong>A light path here improves circulation and keeps feet off wet lawn when needed.</div>
+          <div class="line" style="left:30%;top:22%;width:100px;transform:rotate(8deg)"></div>
+          <div class="overlay" style="right:8%;top:32%"><strong>Alternate seating node</strong>This can be a second, smaller hosting spot if the main fire circle is full.</div>
+          <div class="line" style="right:31%;top:44%;width:95px;transform:rotate(-10deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="7">
+    <div class="content">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/CZMSxkZ.jpeg" alt="Facing northwest where trellis is desired">
+          <div class="plant" style="left:8%;top:18%;width:20%;height:46%;"></div>
+          <div class="bench" style="right:9%;bottom:14%;transform:rotate(-7deg)"></div>
+          <div class="overlay" style="left:8%;top:10%"><strong>Trellis screen</strong>A simple cedar or cattle-panel trellis with native vines softens this edge and adds privacy.</div>
+          <div class="line" style="left:31%;top:20%;width:118px;transform:rotate(10deg)"></div>
+          <div class="overlay" style="right:8%;bottom:11%"><strong>Tucked-away chair</strong>A single chair or small loveseat makes this corner feel like its own small retreat.</div>
+          <div class="line" style="right:31%;bottom:22%;width:98px;transform:rotate(-12deg)"></div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/4zx6GU5.jpeg" alt="More north view with chainlink to remove">
+          <div class="plant" style="right:10%;bottom:12%;width:26%;height:22%;transform:rotate(-6deg)"></div>
+          <div class="path" style="left:14%;bottom:18%;width:34%;height:9%;transform:rotate(-6deg)"></div>
+          <div class="overlay" style="right:8%;bottom:10%"><strong>Chainlink cleanup</strong>Replacing chainlink with wood or welded-wire panels plus planting will upgrade this view significantly.</div>
+          <div class="line" style="right:32%;bottom:20%;width:108px;transform:rotate(-10deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="8">
+    <div class="content">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/LOIWDV1.jpeg" alt="Facing north east across the yard">
+          <div class="path" style="left:14%;top:24%;width:33%;height:9%;transform:rotate(8deg)"></div>
+          <div class="plant" style="right:9%;bottom:12%;width:28%;height:18%;transform:rotate(-10deg)"></div>
+          <div class="overlay" style="left:8%;top:10%"><strong>Transition walk</strong>Movement is pushed to the edges so the center of the yard remains open and flexible.</div>
+          <div class="line" style="left:30%;top:21%;width:102px;transform:rotate(8deg)"></div>
+          <div class="overlay" style="right:8%;bottom:11%"><strong>Plant rhythm</strong>Alternating grasses and color keeps this side soft but structured.</div>
+          <div class="line" style="right:30%;bottom:20%;width:105px;transform:rotate(-12deg)"></div>
+        </div>
+        <div class="img-shell reveal">
+          <img src="https://i.imgur.com/MeoeheY.jpeg" alt="Facing east with Julia's house beyond the yard">
+          <div class="plant" style="left:10%;bottom:10%;width:30%;height:18%;transform:rotate(-6deg)"></div>
+          <div class="overlay" style="left:8%;bottom:10%"><strong>Foreground planting</strong>A low native layer lets the house stay visible while making views from inside feel finished.</div>
+          <div class="line" style="left:31%;bottom:20%;width:100px;transform:rotate(-12deg)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="9">
+    <div class="content">
+      <div class="img-shell reveal">
+        <img src="https://i.imgur.com/lufN4Jf.jpeg" alt="Facing north from the southwest part of the new yard">
+        <div class="host" style="right:18%;bottom:20%;width:32%;height:24%;transform:rotate(-4deg)"></div>
+        <div class="lounge" style="right:22%;bottom:26%;transform:rotate(-6deg)"></div>
+        <div class="plant" style="right:12%;bottom:12%;width:30%;height:22%;transform:rotate(-8deg)"></div>
+        <div class="overlay" style="right:8%;bottom:10%"><strong>Long-view lounge</strong>A daybed-style bench or pair of loungers here anchors the long axis of the yard.</div>
+        <div class="line" style="right:31%;bottom:22%;width:108px;transform:rotate(-10deg)"></div>
+      </div>
+      <div class="card p-7 md:p-9 mt-6 md:mt-8 max-w-3xl mx-auto reveal">
+        <div class="label mb-3 mx-auto">How it all comes together</div>
+        <h2 class="font-display text-[clamp(2.2rem,4.4vw,3.7rem)] mb-3 text-center">A simple structure underneath a magical feel</h2>
+        <p class="small mb-4 text-center max-w-2xl mx-auto">Underneath the dreamy mood, the yard is organized by a few clear rules: all main hosting happens in the lawn and near the house, edges carry paths and planting, and the old pad quietly supports the rest instead of trying to compete with it.</p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <span class="label">Central fire + dining circle</span>
+          <span class="label">Near-house lounge</span>
+          <span class="label">Edge paths &amp; native bands</span>
+          <span class="label">Pad as utility zone</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide" data-slide="10">
+    <div class="content">
+      <div class="card p-7 md:p-9 max-w-4xl mx-auto reveal">
+        <div class="label mb-3">Furniture palette (Lowe's)</div>
+        <h2 class="font-display text-[clamp(2.1rem,4.3vw,3.6rem)] mb-3 text-center">Light, durable pieces that match the plan</h2>
+        <p class="small mb-5 text-center max-w-3xl mx-auto">The goal is to keep the yard feeling open and calm. These types of sets are widely available at Lowe's and fit the layout without overwhelming the space.</p>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="card p-4 flex flex-col gap-2 small">
+            <strong>Central fire circle</strong>
+            <p>Low, round <span class="font-semibold">steel wood-burning fire pit</span> (around 27–30 in) with simple lines, plus four lightweight metal lounge chairs that can be moved as needed.</p>
+          </div>
+          <div class="card p-4 flex flex-col gap-2 small">
+            <strong>Near-house lounge</strong>
+            <p>Compact <span class="font-semibold">2–4 piece conversation set</span> in powder-coated aluminum or wicker: two chairs and a small coffee table for morning coffee and reading.</p>
+          </div>
+          <div class="card p-4 flex flex-col gap-2 small">
+            <strong>Secondary perch</strong>
+            <p>One <span class="font-semibold">bench or loveseat</span> on the west or trellis side, so there is always a quieter spot away from the main group.</p>
+          </div>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 mt-6">
+          <div class="card p-4 small">
+            <strong>Material notes</strong>
+            <ul class="mt-2 space-y-2">
+              <li>Favor powder-coated aluminum or steel over heavy wood for easier moving and lower maintenance.</li>
+              <li>Neutral cushions (sand, cream, charcoal) keep the yard from feeling visually busy.</li>
+            </ul>
+          </div>
+          <div class="card p-4 small">
+            <strong>Where to look at Lowe's</strong>
+            <ul class="mt-2 space-y-2">
+              <li>Patio conversation sets with 2–4 seats and a small table.</li>
+              <li>Simple round steel fire pits in the 27–30 in range.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" data-slide="11">
+    <div class="content">
+      <div class="card p-7 md:p-9 max-w-4xl mx-auto reveal">
+        <div class="label mb-3">Landscape materials (Lowe's)</div>
+        <h2 class="font-display text-[clamp(2.1rem,4.3vw,3.6rem)] mb-3 text-center">Economical materials that still feel special</h2>
+        <p class="small mb-5 text-center max-w-3xl mx-auto">Most of the look comes from a few repeatable materials you can pick up locally, layered with Texas-friendly plants.</p>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="card p-4 small">
+            <strong>Paths and nodes</strong>
+            <p class="mt-2">Bulk <span class="font-semibold">crushed stone or decomposed granite</span> for the DG walks and central gravel circle, installed over a compacted base for a finished feel.</p>
+          </div>
+          <div class="card p-4 small">
+            <strong>Plant containers</strong>
+            <p class="mt-2"><span class="font-semibold">Cedar raised beds or galvanized stock-tank planters</span> gathered near the house or pad for herbs, perennials, and a few statement natives.</p>
+          </div>
+          <div class="card p-4 small">
+            <strong>Trellis and accents</strong>
+            <p class="mt-2">Off-the-shelf <span class="font-semibold">steel or iron trellis panels</span> for the northwest screen, plus a few simple solar path lights to mark key routes.</p>
+          </div>
+        </div>
+        <ul class="small mt-5 space-y-2 text-left md:text-center">
+          <li>Crushed stone in tan or neutral mixes ties in with the existing concrete and house color.</li>
+          <li>Cedar and galvanized metal align with Austin's vernacular and age well outdoors.</li>
+          <li>Most plantings can be sourced as 1-gallon natives and allowed to fill in over time.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-controls">
+  <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+  <div class="slide-dots" id="dots"></div>
+  <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+  <span class="slide-counter" id="counter">1 / 11</span>
+</div>
+
+<script>
+let current=1;const total=document.querySelectorAll('.slide').length,dotsContainer=document.getElementById('dots'),counter=document.getElementById('counter');
+for(let i=1;i<=total;i++){const dot=document.createElement('div');dot.className='dot'+(i===1?' active':'');dot.onclick=()=>goToSlide(i);dotsContainer.appendChild(dot)}
+function goToSlide(n){const prev=document.querySelector('.slide.active'),next=document.querySelector(`.slide[data-slide="${n}"]`);if(prev)prev.classList.remove('active');if(next){next.classList.add('active');animateSlide(next)}current=n;updateNav()}
+function changeSlide(dir){let next=current+dir;if(next<1)next=total;if(next>total)next=1;goToSlide(next)}
+function updateNav(){document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i+1===current));counter.textContent=current+' / '+total}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();changeSlide(1)}if(e.key==='ArrowLeft'){e.preventDefault();changeSlide(-1)}});
+let touchStartX=0;document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX});document.addEventListener('touchend',e=>{const diff=touchStartX-e.changedTouches[0].clientX;if(Math.abs(diff)>50)changeSlide(diff>0?1:-1)});
+function animateSlide(slide){slide.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transition='none';el.style.opacity='0';el.style.transform='translateY(18px)';el.offsetHeight;const delay=i*.08;el.style.transition=`opacity .35s ease ${delay}s, transform .35s ease ${delay}s`;el.style.opacity='1';el.style.transform='translateY(0px)'})}
+animateSlide(document.querySelector('.slide.active'));
+</script>
+</body>
+</html>
